@@ -35,6 +35,9 @@ export const actions = {
       projects => {
         // commit('setApiStatus', 'good')
         // console.log(projects)
+          // var e = document.createElement('div');
+          // e.innerHTML = input;
+          // return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
         commit('updateProjects', { projects, categoryName })
       },
       (err) => {

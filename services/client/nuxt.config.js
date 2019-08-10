@@ -29,6 +29,8 @@ export default {
   */
   plugins: [
     '~/plugins/projects.server.js',
+    '~/plugins/htmlDecode.js',
+    '~/plugins/vue-multiselect'
   ],
   /*
   ** Nuxt.js dev-modules
@@ -42,6 +44,7 @@ export default {
     // Doc: https://axios.nuxtjs.org/usage
     '@nuxtjs/axios',
     '@nuxtjs/proxy',
+    '@nuxtjs/date-fns',
     'nuxt-buefy',
     // '@nuxtjs/style-resources'
   ],

@@ -4,6 +4,7 @@
     <nuxt-link to="/">Home</nuxt-link>
     <span>categoryPage: {{ categoryPage }}</span>
     <list-notes v-if="categoryPage" />
+    <list-commits v-if="!categoryPage" />
     <!-- When using the store with fetch:
     <span>...{{ $store.state.projects.myProjects }}...</span> -->
     <!-- When using asyncData:
@@ -14,15 +15,18 @@
 <script>
 import { mapState } from 'vuex'
 import ListNotes from '~/components/ListNotes.vue'
+import ListCommits from '~/components/ListCommits.vue'
 
 export default {
   components: {
-    ListNotes
+    ListNotes,
+    ListCommits
   },
   data() {
     return {
       categoryPage: false,
       categoryName: null,
+      analysisId: null,
       // myProjects: []
     }
   },
@@ -41,10 +45,15 @@ export default {
     if (res.length === 1) {
       return await store.dispatch('projects/load', categoryName);
     }
+    else if (res.length >= 1) {
+      const analysisId = res[1]
+      return await store.dispatch('commits/load', { categoryName, analysisId });
+    }
   },
   computed: {
     ...mapState({
       proj: 'projects/myProjects',
+      comm: 'commits/commitList',
       tdrTypes: 'tdrTypes'})
   },
   mounted() {
@@ -52,6 +61,10 @@ export default {
     if (res.length <= 1) {
       this.categoryPage = true
       this.categoryName = res[0]
+    }
+    else {
+      this.categoryName = res[0]
+      this.analysisId = res[1]
     }
   },
   validate({ params, query, store }) {

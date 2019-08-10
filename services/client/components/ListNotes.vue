@@ -40,12 +40,12 @@
           :data="filtered"
           :hoverable="true"
           :striped="true"
-          :default-sort="name"
-          :sort-icon="chevron-up"
-          :default-sort-direction="desc"
+          default-sort-direction="desc"
+          :default-sort="['name', 'asc']"
+          sort-icon="chevron-up"
           :checked-rows.sync="checkedRows"
           checkable
-          :checkbox-position="left"
+          checkbox-position="left"
           style="width:50vw;"
         >
           <template slot-scope="props">
@@ -58,11 +58,12 @@
                 :class="
             [
                 'tag',
-                {'is-danger': props.row.id >= 70000 },
-                {'is-success': props.row.id < 70000 }
+                {'is-danger': ($dateFns.differenceInDays(new Date(), new Date(props.row.last_activity_at)) >= 7) },
+                {'is-success': ($dateFns.differenceInDays(new Date(), new Date(props.row.last_activity_at)) < 7) }
             ]"
-              >{{ new Date(props.row.last_activity_at).toLocaleDateString() }}</span>
+              >{{ $dateFns.distanceInWordsToNow(new Date(props.row.last_activity_at)) }}</span>
             </b-table-column>
+            <b-table-column field="description" label="Description">{{ props.row.description }}</b-table-column>
             <b-table-column field="web_url" label="GitLab repository">
               <a :href="props.row.web_url">{{ props.row.web_url }}</a>
             </b-table-column>
@@ -105,25 +106,24 @@ export default {
       checkedRows: []
     }
   },
-  // methods: {
-  //   ageFilter(filterValue, row) {
-  //     return row.id >= filterValue[0] && row.id <= filterValue[1]
-  //   }
-  // },
   computed: {
     filtered() {
-      var name_re = new RegExp(this.search_query, 'i')
+      // var name_re = new RegExp(this.search_query, 'i')
+      const query = this.search_query
+      const myProject = this.$store.state.projects.myProjects
       var tableData = []
-      for (var i in this.$store.state.projects.myProjects) {
+      for (var i in myProject) {
         if (
-          (this.$store.state.projects.myProjects[i].name.match(name_re) ||
-            this.$store.state.projects.myProjects[i].id
+          (myProject[i].name.includes(query) ||
+            (myProject[i].description &&
+              myProject[i].description.includes(query)) ||
+            myProject[i].id
               .toString()
-              .match(name_re)) &&
-          (this.$store.state.projects.myProjects[i].id < this.idRange[1] &&
-            this.$store.state.projects.myProjects[i].id > this.idRange[0])
+              .includes(query)) &&
+          (myProject[i].id < this.idRange[1] &&
+            myProject[i].id > this.idRange[0])
         ) {
-          tableData.push(this.$store.state.projects.myProjects[i])
+          tableData.push(myProject[i])
         }
       }
       return tableData
