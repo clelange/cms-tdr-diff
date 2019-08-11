@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: minikube-ingress
+  annotations:
+    # this annotation is important, otherwise the starlette server will see /hello as URL
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: hello.world
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: vue
+          servicePort: 5050
+      - path: /hello
+        backend:
+          serviceName: starlette
+          servicePort: 5000

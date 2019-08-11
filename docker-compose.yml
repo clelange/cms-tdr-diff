@@ -1,0 +1,41 @@
+version: '3.7'
+
+services:
+
+  reverseproxy:  # see https://docs.traefik.io/#the-traefik-quickstart-using-docker
+    image: traefik
+    command: --docker --api
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  server:
+    build:
+      context: ./services/server
+      dockerfile: Dockerfile
+    ports:
+      # if i put "1234:8000" I can access the server at localhost:1234 from the browser, and the backend/client both get it from 8000
+      - "1234:8000"
+    environment:
+      FRONTEND_ORIGIN: http://client:3000/
+    labels:
+      traefik.frontend.rule: PathPrefixStrip:/api
+      traefik.port: 8000
+
+  client:
+    build:
+      context: ./services/client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NUXT_HOST: 0.0.0.0
+      BACKEND_URL: http://server:8000/
+      API_URL_BROWSER: /api
+    depends_on:
+      - server
+    labels:
+      traefik.frontend.rule: PathPrefixStrip:/
+      traefik.port: 3000

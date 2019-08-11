@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: starlette
+  labels:
+    service: starlette
+spec:
+  selector:
+    app: starlette
+  ports:
+  - port: 5000
+    targetPort: 8000

@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: vue
+  labels:
+    name: vue
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: vue
+    spec:
+      containers:
+      - name: vue
+        image: clelange/starlette-vue-kubernetes-client:latest
+        env:
+        - name: VUE_APP_BACKEND_API
+          value: "http://hello.world/hello/"
+      restartPolicy: Always

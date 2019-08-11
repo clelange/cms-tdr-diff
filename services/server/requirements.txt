@@ -1,0 +1,16 @@
+certifi==2019.6.16
+chardet==3.0.4
+Click==7.0
+gunicorn==19.9.0
+h11==0.9.0
+httptools==0.0.13
+idna==2.8
+python-gitlab==1.10.0
+requests==2.22.0
+requests-cache==0.5.0
+six==1.12.0
+starlette==0.12.5
+urllib3==1.25.3
+uvicorn==0.8.4
+uvloop==0.12.2
+websockets==8.0.1

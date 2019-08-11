@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: starlette
+  labels:
+    name: starlette
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: starlette
+    spec:
+      containers:
+      - name: starlette
+        image: clelange/starlette-vue-kubernetes-server:latest
+        env:
+        - name: FRONTEND_ORIGIN
+          value: "http://hello.world/"
+      restartPolicy: Always
