@@ -1,6 +1,7 @@
 .DS_Store
 # starlette settings file
 .env
+cache.sqlite
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

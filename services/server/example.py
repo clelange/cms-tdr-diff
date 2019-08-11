@@ -101,7 +101,7 @@ async def forward_ci_trigger(request):
     # task = BackgroundTask(trigger_ci, sha1=sha1, sha2=sha2, group=group, project=project)
     # task = trigger_ci(sha1=sha1, sha2=sha2, group=group, project=project)
     payload = {
-        'token': str(settings.GITLAB_TOKEN),
+        'token': str(settings.TRIGGER_TOKEN),
         'ref': 'master',
         'variables[REPO_PROJECT]': project,
         'variables[REPO_GROUP]': group,
@@ -120,7 +120,7 @@ async def forward_ci_trigger(request):
 
 async def trigger_ci(sha1, sha2, group, project):
     payload = {
-        'token': str(settings.GITLAB_TOKEN),
+        'token': str(settings.TRIGGER_TOKEN),
         'ref': 'master',
         'variables[REPO_PROJECT]': project,
         'variables[REPO_GROUP]': group,

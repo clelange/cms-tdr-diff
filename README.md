@@ -54,3 +54,7 @@ https://alligator.io/vuejs/working-with-environment-variables/
 ## Running on kubernetes
 
 [Connect a Front End to a Back End Using a Service](https://kubernetes.io/docs/tasks/access-application-cluster/connecting-frontend-backend/)
+
+## Backend
+
+For now, need a token created at <https://gitlab.cern.ch/clange/tdr-diff/-/settings/ci_cd#js-pipeline-triggers>.
