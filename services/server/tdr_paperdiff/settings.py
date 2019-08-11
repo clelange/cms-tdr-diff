@@ -10,6 +10,7 @@ TRIGGER_TOKEN = config('TRIGGER_TOKEN', cast=Secret)
 GITLAB_URL = config('GITLAB_URL', cast=URL, default='https://gitlab.cern.ch')
 GITLAB_PROJECT="56283"
 PIPELINE_URL = f"https://gitlab.cern.ch/api/v4/projects/{GITLAB_PROJECT}/trigger/pipeline"
+DEBUG = config('DEBUG', cast=bool, default=True)
 
 GROUP_IDS = {'papers': 16555,
             'notes': 16803,

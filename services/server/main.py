@@ -8,7 +8,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException
 from starlette.background import BackgroundTask
 import requests
-import requests_cache
+# import requests_cache
 import gitlab
 import uvicorn
 
@@ -17,7 +17,7 @@ from tdr_paperdiff import settings
 print("FRONTEND_ORIGIN defined as:", settings.FRONTEND_ORIGIN)
 
 # Cache requests to GitLab API
-requests_cache.install_cache() # use 'redis' eventually
+# requests_cache.install_cache() # use 'redis' eventually
 
 print('Initialising GitLab')
 gl = gitlab.Gitlab(settings.GITLAB_URL, private_token=str(settings.GITLAB_TOKEN), timeout=120)
