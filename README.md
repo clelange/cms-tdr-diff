@@ -31,12 +31,12 @@ The application should then be running at <http://localhost:3000>.
 
 ### Running with docker-compose
 
-We need to forward the secrets to docker. We can do that as follows:
+We need to forward the secrets to docker. Doing this via creating secrets does not work in bare compose, so we need to write our secrets into files (the `secrets` directory is ignored by git):
 
 ```shell
-docker swarm init
-echo ${GITLAB_TOKEN} > docker secret create GITLAB_TOKEN -
-echo ${TRIGGER_TOKEN} > docker secret create TRIGGER_TOKEN -
+mkdir secrets
+echo ${GITLAB_TOKEN} > secrets/GITLAB_TOKEN
+echo ${TRIGGER_TOKEN} > secrets/TRIGGER_TOKEN
 ```
 
 And then start the containers:

@@ -42,3 +42,9 @@ services:
     labels:
       traefik.frontend.rule: PathPrefixStrip:/
       traefik.port: 3000
+
+secrets:
+  GITLAB_TOKEN:
+    file: ./secrets/GITLAB_TOKEN
+  TRIGGER_TOKEN:
+    file: ./secrets/TRIGGER_TOKEN
