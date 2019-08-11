@@ -109,7 +109,6 @@ async def forward_ci_trigger(request):
         'variables[GIT_SHA2]': sha2
     }
     r = requests.post(settings.PIPELINE_URL, data=payload)
-    r = requests.post(settings.PIPELINE_URL, data=payload)
     # print(r.json(), r.json().keys())
     pipeline_id = {'pipeline_id': r.json()['id']}
     print(pipeline_id)
