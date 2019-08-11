@@ -1,6 +1,6 @@
 workflow "New workflow" {
   on = "push"
-  resolves = ["Docker Push"]
+  resolves = ["Docker Push Backend", "Docker Push Frontend"]
 }
 
 action "Docker Registry" {
