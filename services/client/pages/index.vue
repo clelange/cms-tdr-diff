@@ -1,17 +1,18 @@
 <template>
-  <div class="container">
+  <div>
     <div>
-      <cms-logo />
-      <h1 class="title">
-        CMS paper and notes diff
-      </h1>
-      <h1 v-if="apiStatus === 'good'" style="color: green;">API status OK</h1>
-      <h1 v-else-if="apiStatus === 'bad'" style="color: red;">Cannot connect to backend API</h1>
-      <h1 v-else>Loading...</h1>
-      <div class="links">
-        <span v-for="item in tdrTypes.names" :key="item">
-          <nuxt-link :to="item" class="button--grey">{{ item }}</nuxt-link>
-        </span>
+      <page-header />
+    </div>
+    <div class="container">
+      <div>
+        <cms-logo />
+        <h1 class="title">CMS paper and notes diff</h1>
+        <h1>Choose a category to browse:</h1>
+        <div class="links">
+          <span v-for="item in tdrTypes.names" :key="item">
+            <nuxt-link :to="item" class="button--grey">{{ item }}</nuxt-link>
+          </span>
+        </div>
       </div>
     </div>
   </div>
@@ -20,10 +21,12 @@
 <script>
 import { mapState } from 'vuex'
 import CmsLogo from '~/components/CmsLogo.vue'
+import PageHeader from '~/components/Header.vue'
 
 export default {
   components: {
-    CmsLogo
+    CmsLogo,
+    PageHeader
   },
   computed: {
     ...mapState(['tdrTypes', 'apiStatus'])

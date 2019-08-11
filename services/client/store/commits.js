@@ -28,6 +28,7 @@ export const actions = {
   async load({ state, commit }, { categoryName, analysisId }) {
     console.log('called load() in commits.js for category', categoryName, 'and analysis', analysisId)
     console.log(state.commitList)
+    // FIXME
     if ((state.commitList) && (categoryName in Object.keys(state.commitList))) {
       console.log(state.commitList[categoryName].length)
       return

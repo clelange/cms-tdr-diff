@@ -12,7 +12,12 @@ export default {
       { hid: 'description', name: 'description', content: process.env.npm_package_description || '' }
     ],
     link: [
-      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+      {
+        rel: "stylesheet",
+        href:
+          "https://fonts.googleapis.com/css?family=Permanent+Marker&display=swap"
+      }
     ]
   },
   /*
@@ -29,8 +34,7 @@ export default {
   */
   plugins: [
     '~/plugins/projects.server.js',
-    '~/plugins/htmlDecode.js',
-    '~/plugins/vue-multiselect'
+    '~/plugins/htmlDecode.js'
   ],
   /*
   ** Nuxt.js dev-modules
@@ -46,6 +50,10 @@ export default {
     '@nuxtjs/proxy',
     '@nuxtjs/date-fns',
     'nuxt-buefy',
+    ['nuxt-vuex-localstorage', {
+      localStorage: ['jobs'],
+      sessionStorage: ['jobs']
+    }]
     // '@nuxtjs/style-resources'
   ],
   /*

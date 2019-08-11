@@ -1,14 +1,20 @@
 <template>
   <div>
-    <h1>Viewing route: {{ $route.params }}</h1>
-    <nuxt-link to="/">Home</nuxt-link>
-    <span>categoryPage: {{ categoryPage }}</span>
-    <list-notes v-if="categoryPage" />
-    <list-commits v-if="!categoryPage" />
-    <!-- When using the store with fetch:
-    <span>...{{ $store.state.projects.myProjects }}...</span> -->
-    <!-- When using asyncData:
-    <span>...{{ myProjects }}...</span> -->
+    <div>
+      <page-header />
+    </div>
+    <div>
+      <!-- <h1>Viewing route: {{ $route.params }}</h1> -->
+      <!-- <nuxt-link to="/">Home</nuxt-link> -->
+      <!-- <nuxt-link to="/statusboard">Status Board</nuxt-link> -->
+      <!-- <span>categoryPage: {{ categoryPage }}</span> -->
+      <list-notes v-if="categoryPage" />
+      <list-commits v-if="!categoryPage" />
+      <!-- When using the store with fetch:
+      <span>...{{ $store.state.projects.myProjects }}...</span>-->
+      <!-- When using asyncData:
+      <span>...{{ myProjects }}...</span>-->
+    </div>
   </div>
 </template>
 
@@ -16,17 +22,19 @@
 import { mapState } from 'vuex'
 import ListNotes from '~/components/ListNotes.vue'
 import ListCommits from '~/components/ListCommits.vue'
+import PageHeader from '~/components/Header.vue'
 
 export default {
   components: {
     ListNotes,
-    ListCommits
+    ListCommits,
+    PageHeader
   },
   data() {
     return {
       categoryPage: false,
       categoryName: null,
-      analysisId: null,
+      analysisId: null
       // myProjects: []
     }
   },
@@ -43,26 +51,25 @@ export default {
     const res = params.pathMatch.split('/')
     const categoryName = res[0]
     if (res.length === 1) {
-      return await store.dispatch('projects/load', categoryName);
-    }
-    else if (res.length >= 1) {
+      return await store.dispatch('projects/load', categoryName)
+    } else if (res.length >= 1) {
       const analysisId = res[1]
-      return await store.dispatch('commits/load', { categoryName, analysisId });
+      return await store.dispatch('commits/load', { categoryName, analysisId })
     }
   },
   computed: {
     ...mapState({
       proj: 'projects/myProjects',
       comm: 'commits/commitList',
-      tdrTypes: 'tdrTypes'})
+      tdrTypes: 'tdrTypes'
+    })
   },
   mounted() {
     const res = this.$route.params.pathMatch.split('/')
     if (res.length <= 1) {
       this.categoryPage = true
       this.categoryName = res[0]
-    }
-    else {
+    } else {
       this.categoryName = res[0]
       this.analysisId = res[1]
     }
@@ -86,8 +93,7 @@ export default {
       } else {
         throw new Error(res[2], 'is not a valid', res[1], 'pattern!')
       }
-    }
-    else {
+    } else {
       return true
     }
   }

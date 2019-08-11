@@ -25,6 +25,7 @@ export const actions = {
   async load({ state, commit }, categoryName) {
     console.log('called load() in projects.js for category', categoryName)
     console.log(state.myProjects)
+    // FIXME: use list instead, test for content
     if ((state.myProjects) && (categoryName in Object.keys(state.myProjects))) {
       console.log(state.myProjects[categoryName].length)
       return

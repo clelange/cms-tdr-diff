@@ -18,7 +18,7 @@
     "eslint": "^6.1.0",
     "nuxt": "^2.0.0",
     "nuxt-buefy": "^0.3.13",
-    "vue-multiselect": "^2.1.6"
+    "nuxt-vuex-localstorage": "^1.2.6"
   },
   "devDependencies": {
     "eslint-config-prettier": "^4.1.0",
