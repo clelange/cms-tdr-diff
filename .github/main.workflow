@@ -11,8 +11,7 @@ action "Docker Registry" {
 action "GitHub Action for Docker" {
   uses = "actions/docker/cli@86ab5e854a74b50b7ed798a94d9b8ce175d8ba19"
   needs = ["Docker Registry"]
-  args = "build -t tdr-diff-backend"
-  runs = 'sh -c "cd services/server && docker $*"'
+  args = "build -t tdr-diff-backend ./services/server"
 }
 
 action "Docker Tag" {
