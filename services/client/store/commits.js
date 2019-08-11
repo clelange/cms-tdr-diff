@@ -14,13 +14,8 @@ export const state = () => ({
 export const mutations = {
   updateCommits: (state, { commits, categoryName, analysisId }) => {
     console.log('called updateCommits() in commits.js', categoryName, analysisId)
-    console.log(commits.commits.length)
-    console.log(commits.project_info.length)
     state.commitList = commits.commits
     state.projectInfo = commits.project_info
-    // console.log(state.commits)
-    // console.log(state.commitList)
-    // console.log(state.commits.categoryName[0])
   }
 }
 
@@ -34,20 +29,16 @@ export const actions = {
       return
     }
     console.log('axios commits')
-    // commit('setApiStatus', null)
+    commit('setApiStatus', null, { root: true })
     await this.$axios.$get(categoryName+'/'+analysisId).then(
       commits => {
-        // commit('setApiStatus', 'good')
-        // console.log(commits)
-          // var e = document.createElement('div');
-          // e.innerHTML = input;
-          // return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
-        commit('updateCommits', { commits, categoryName })
+        commit('setApiStatus', 'good', { root: true })
+        commit('updateCommits', { commits, categoryName, analysisId })
       },
       (err) => {
         console.log('error')
         console.log(err)
-        // commit('setApiStatus', 'bad')
+        commit('setApiStatus', 'bad', { root: true })
       }
     )
   }

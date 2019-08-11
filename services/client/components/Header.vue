@@ -11,10 +11,10 @@
 
     <template slot="start">
       <b-navbar-item>
-        <nuxt-link to="/">Home</nuxt-link>
+        <nuxt-link to="/" style="padding-right: 10px;">Home</nuxt-link>
       </b-navbar-item>
       <b-navbar-item v-for="item in tdrTypes.names" :key="item">
-        <nuxt-link :to="item">{{ item }}</nuxt-link>
+        <nuxt-link :to="'/'+item">{{ item }}</nuxt-link>
       </b-navbar-item>
       <!-- <b-navbar-item href="#">
                 About

@@ -24,27 +24,22 @@ export const mutations = {
 export const actions = {
   async load({ state, commit }, categoryName) {
     console.log('called load() in projects.js for category', categoryName)
-    console.log(state.myProjects)
     // FIXME: use list instead, test for content
     if ((state.myProjects) && (categoryName in Object.keys(state.myProjects))) {
       console.log(state.myProjects[categoryName].length)
       return
     }
     console.log('axios projects')
-    // commit('setApiStatus', null)
+    commit('setApiStatus', null, { root: true })
     await this.$axios.$get('/projects/'+categoryName).then(
       projects => {
-        // commit('setApiStatus', 'good')
-        // console.log(projects)
-          // var e = document.createElement('div');
-          // e.innerHTML = input;
-          // return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
+        commit('setApiStatus', 'good', { root: true })
         commit('updateProjects', { projects, categoryName })
       },
       (err) => {
         console.log('error')
         console.log(err)
-        // commit('setApiStatus', 'bad')
+        commit('setApiStatus', 'bad', { root: true })
       }
     )
   }

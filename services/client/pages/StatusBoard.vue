@@ -10,16 +10,12 @@
         <b-button @click="updatePipelines()" rounded>Update Pipeline Status</b-button>
         <b-button @click="injectPipeline()" rounded>Inject Pipeline</b-button>
       </div>
-      <div v-show="loaded">
-        {{ $store.state.localStorage.anyValues }}
-        <!-- {{ $store.state.sessionStorage.anyValues }} -->
-      </div>
-      <button @click="$store.commit('localStorage/increase')">increase</button>
     </section>
     <section class="section">
       <b-tabs>
         <b-table
           :data="filtered"
+          :loading="!loaded"
           :hoverable="true"
           :striped="true"
           sort-icon="chevron-up"
@@ -124,14 +120,13 @@ export default {
       myJobs: 'jobs/pipelineStatus'
     }),
     loaded() {
-      return this.$store.state.localStorage.status // && this.$store.state.sessionStorage.status
+      return this.$store.state.jobs.status
     },
     filtered() {
       console.log('filtered status')
       let massagedPipelines = []
       for (var i in this.$store.state.jobs.pipelineStatus) {
         const currentPipeline = this.$store.state.jobs.pipelineStatus[i]
-        console.log('massaging', currentPipeline.pipelineId)
         var jobDict = {}
         jobDict['pipelineId'] = currentPipeline.pipelineId
         jobDict['jobId'] = currentPipeline.jobStatus.id
@@ -190,10 +185,8 @@ export default {
             new Date(currentPipeline.jobStatus.created_at)
           ) + ' ago'
         jobDict['web_url'] = currentPipeline.jobStatus.web_url
-        console.log(jobDict)
         massagedPipelines.push(jobDict)
       }
-      console.log(massagedPipelines)
       return massagedPipelines
     }
   },

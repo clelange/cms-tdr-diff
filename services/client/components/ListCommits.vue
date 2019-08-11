@@ -1,5 +1,6 @@
 <template>
   <div>
+    <b-loading :active.sync="isLoading" :can-cancel="false"></b-loading>
     <section class="section">
       <h1 class="title is-3">{{ categoryName }} / {{ $store.state.commits.projectInfo.name }}</h1>
       <h2 class="subtitle is-6">description: {{ $store.state.commits.projectInfo.description }}<br/>
@@ -72,7 +73,7 @@
               sortable
               numeric
             >{{ props.row.short_id }}</b-table-column>
-            <b-table-column field="title" label="Title" sortable>{{ props.row.title }}</b-table-column>
+            <b-table-column field="title" label="Commit title" sortable>{{ props.row.title }}</b-table-column>
             <b-table-column field="created_at" label="Commit date" centered sortable>
               <span
                 :class="
@@ -86,26 +87,19 @@
             <b-table-column field="author_name" label="Author name">{{ props.row.author_name }}</b-table-column>
             <b-table-column field="author_email" label="Author email">{{ props.row.author_email }}</b-table-column>
           </template>
+          <template slot="empty">
+            <section class="section">
+              <div class="content has-text-grey has-text-centered">
+                <p>
+                  <b-icon icon="emoticon-sad" size="is-large"></b-icon>
+                </p>
+                <p>No commits found in the last 90 days.</p>
+              </div>
+            </section>
+          </template>
         </b-table>
       </b-tabs>
     </section>
-    <!-- <th>Name</th>
-        <th>last activity</th>
-    </thead>
-    <tbody slot="body" slot-scope="{displayData}">
-        <tr v-for="row in displayData" :key="row.id">
-          <td>{{ row.id }}</td>
-          <td>{{ row.name }}</td>
-          <td>{{ row.last_activity_at }}</td>
-        </tr>
-    </tbody>-->
-
-    <!-- <h1>Listing notes for {{ categoryName }}</h1>
-    <div v-for="project in $store.state.projects.myProjects" :key="project.id" class="project">
-      <h3>
-        <a :href="project.web_url">{{ project.name }}</a>
-      </h3>
-    </div>-->
   </div>
 </template>
 
@@ -113,13 +107,9 @@
 export default {
   data() {
     return {
+      isLoading: !(this.$store.state.apiStatus),
       categoryName: this.$route.params.pathMatch.split('/')[0],
       search_query: '',
-      // idRange: [50000, 80000],
-      // filters: {
-      //   name: { value: '', keys: ['name'] },
-      //   id: { value: [70000, 75000], custom: this.ageFilter }
-      // },
       checkedRows: [],
       commitList: [],
       currentPipeline: null
@@ -127,15 +117,18 @@ export default {
   },
   computed: {
     filtered() {
-      // var name_re = new RegExp(this.search_query, 'i')
-      const query = this.search_query
+      var query = this.search_query
+      while (query.endsWith('\\')) {
+        query = query.slice(0, query.lastIndexOf('\\') - 1)
+      }
+      var name_re = new RegExp(query, 'i')
       const myCommitList = this.commitList
       var tableData = []
       for (var i in myCommitList) {
         if (
-          myCommitList[i].short_id.includes(query) ||
-          myCommitList[i].title.includes(query) ||
-          myCommitList[i].author_name.includes(query)
+          myCommitList[i].short_id.match(name_re) ||
+          myCommitList[i].title.match(name_re) ||
+          myCommitList[i].author_name.match(name_re)
         ) {
           tableData.push(myCommitList[i])
         }
