@@ -12,6 +12,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
 
   server:
+    image: tdr-diff-backend
     build:
       context: ./services/server
       dockerfile: Dockerfile
@@ -28,6 +29,7 @@ services:
       traefik.port: 8000
 
   client:
+    image: tdr-diff-client
     build:
       context: ./services/client
       dockerfile: Dockerfile
