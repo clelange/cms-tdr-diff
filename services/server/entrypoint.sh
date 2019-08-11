@@ -1,6 +1,11 @@
 #! /usr/bin/env sh
 set -e
 
+GITLAB_TOKEN=$(cat /run/secrets/GITLAB_TOKEN)
+export GITLAB_TOKEN
+TRIGGER_TOKEN=$(cat /run/secrets/TRIGGER_TOKEN)
+export TRIGGER_TOKEN
+
 if [ -f /app/app/main.py ]; then
     DEFAULT_MODULE_NAME=app.main
 elif [ -f /app/main.py ]; then

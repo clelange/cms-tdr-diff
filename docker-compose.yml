@@ -20,6 +20,9 @@ services:
       - "1234:8000"
     environment:
       FRONTEND_ORIGIN: http://client:3000/
+    secrets:
+      - GITLAB_TOKEN
+      - TRIGGER_TOKEN
     labels:
       traefik.frontend.rule: PathPrefixStrip:/api
       traefik.port: 8000

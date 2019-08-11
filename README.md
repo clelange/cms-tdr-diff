@@ -6,6 +6,15 @@ A service to highlight changes between CMS paper/note versions.
 
 ### Local development
 
+In order to access the GitLab API, we need two tokens, one for talking to the API (called `GITLAB_TOKEN`), and another to trigger the pipelines (referred to as `TRIGGER_TOKEN`). You can create them as environment variables or add a new file `services/server/.env`:
+
+```shell
+GITLAB_TOKEN='my_api_token'
+TRIGGER_TOKEN='my_trigger_token'
+```
+
+Then start the server:
+
 ```shell
 cd services/server
 python example.py
@@ -21,6 +30,16 @@ npm run dev
 The application should then be running at <http://localhost:3000>.
 
 ### Running with docker-compose
+
+We need to forward the secrets to docker. We can do that as follows:
+
+```shell
+docker swarm init
+echo ${GITLAB_TOKEN} > docker secret create GITLAB_TOKEN -
+echo ${TRIGGER_TOKEN} > docker secret create TRIGGER_TOKEN -
+```
+
+And then start the containers:
 
 ```shell
 docker-compose up -d --build
