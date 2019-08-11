@@ -6,7 +6,6 @@ export const state = () => ({
 
 export const actions = {
   async loadTdr({ state, commit }) {
-    console.log('computed')
     if (state.tdrTypes.length) return
     commit('setApiStatus', null)
     await this.$axios.$get('/types').then(

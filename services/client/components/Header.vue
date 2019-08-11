@@ -1,35 +1,34 @@
 <template>
   <b-navbar>
     <template slot="brand">
-      <b-navbar-item>
-        <nuxt-link to="/" class="marker">
-          <b-icon icon="vector-difference" size="is-small" />
-          CMS Paper Diff
-        </nuxt-link>
+      <b-navbar-item class="marker" to="/" tag="nuxt-link">
+        <b-icon icon="vector-difference" size="is-small" />CMS Paper Diff
       </b-navbar-item>
     </template>
 
     <template slot="start">
-      <b-navbar-item>
-        <nuxt-link to="/" style="padding-right: 10px;">Home</nuxt-link>
-      </b-navbar-item>
-      <b-navbar-item v-for="item in tdrTypes.names" :key="item">
-        <nuxt-link :to="'/'+item">{{ item }}</nuxt-link>
-      </b-navbar-item>
-      <!-- <b-navbar-item href="#">
-                About
-      </b-navbar-item>-->
+      <b-navbar-item to="/" tag="nuxt-link">Home</b-navbar-item>
+      <b-navbar-item
+        v-for="item in tdrTypes.names"
+        :key="item"
+        :to="'/'+item"
+        tag="nuxt-link"
+      >{{ item }}</b-navbar-item>
     </template>
 
     <template slot="end">
-      <b-navbar-item tag="div">
+      <b-navbar-item href="#">
         <h1 v-if="apiStatus === 'good'" style="color: green;" class="button">API status OK</h1>
-      <h1 v-else-if="apiStatus === 'bad'" style="color: red;" class="button">Cannot connect to backend API</h1>
-    <h1 v-else class="button">Loading...</h1>
+        <h1
+          v-else-if="apiStatus === 'bad'"
+          style="color: red;"
+          class="button"
+        >Cannot connect to backend API</h1>
+        <h1 v-else class="button">Loading...</h1>
+      </b-navbar-item>
+      <b-navbar-item to="/statusboard" tag="nuxt-link">
         <div class="buttons">
-          <nuxt-link to="/statusboard" class="button is-primary">
-            <strong>Status Board</strong>
-          </nuxt-link>
+          <strong>Status Board</strong>
         </div>
       </b-navbar-item>
     </template>
@@ -40,7 +39,7 @@
 import { mapState } from 'vuex'
 
 export default {
-    computed: {
+  computed: {
     ...mapState(['apiStatus', 'tdrTypes'])
   }
 }
