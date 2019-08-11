@@ -1,3 +1,0 @@
-[submodule "services/client"]
-	path = services/client
-	url = git@github.com:clelange/tdr-diff-client.git
