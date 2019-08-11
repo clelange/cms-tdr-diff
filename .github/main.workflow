@@ -17,13 +17,13 @@ action "GitHub Action for Docker" {
 action "Docker Tag" {
   uses = "actions/docker/tag@86ab5e854a74b50b7ed798a94d9b8ce175d8ba19"
   needs = ["GitHub Action for Docker"]
-  args = "tdr-diff-backend ${DOCKER_USERNAME}/tdr-diff-backend:${GITHUB_SHA}"
+  args = "tdr-diff-backend ${DOCKER_USERNAME}/tdr-diff-backend"
   secrets = ["DOCKER_USERNAME"]
 }
 
 action "Docker Push" {
   uses = "actions/docker/cli@86ab5e854a74b50b7ed798a94d9b8ce175d8ba19"
   needs = ["Docker Tag"]
-  args = "push ${DOCKER_USERNAME}/tdr-diff-backend:${GITHUB_SHA}"
+  args = "push ${DOCKER_USERNAME}/tdr-diff-backend:${IMAGE_SHA}"
   secrets = ["DOCKER_USERNAME"]
 }
