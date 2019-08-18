@@ -18,7 +18,7 @@ services:
       dockerfile: Dockerfile
     ports:
       # if i put "1234:8000" I can access the server at localhost:1234 from the browser, and the backend/client both get it from 8000
-      - "1234:8000"
+      - "8000:8000"
     environment:
       FRONTEND_ORIGIN: http://client:3000/
     secrets:
