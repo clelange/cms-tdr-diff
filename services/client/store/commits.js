@@ -30,7 +30,7 @@ export const actions = {
     }
     console.log('axios commits')
     commit('setApiStatus', null, { root: true })
-    await this.$axios.$get(categoryName+'/'+analysisId).then(
+    await this.$axios.$get('commits/'+categoryName+'/'+analysisId).then(
       commits => {
         commit('setApiStatus', 'good', { root: true })
         commit('updateCommits', { commits, categoryName, analysisId })

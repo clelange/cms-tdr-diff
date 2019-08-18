@@ -1,5 +1,6 @@
 # import time
 # import json
+from threading import Timer
 from datetime import datetime, timedelta
 from starlette.config import environ
 from starlette.applications import Starlette
@@ -22,12 +23,14 @@ print("FRONTEND_ORIGIN defined as:", settings.FRONTEND_ORIGIN)
 print('Initialising GitLab')
 gl = gitlab.Gitlab(settings.GITLAB_URL, private_token=str(settings.GITLAB_TOKEN), timeout=120)
 
-app = Starlette(debug=True)
+app = Starlette(debug=settings.DEBUG)
 
 # A list of origins that should be permitted to make cross-origin requests
 app.add_middleware(CORSMiddleware,
     allow_origins=settings.FRONTEND_ORIGIN,
 )
+
+group_dict = {}
 
 @app.route('/')
 async def homepage(request):
@@ -40,23 +43,17 @@ async def get_types(request):
 
 @app.route('/projects/{group_id}')
 async def get_group_projects(request):
+    global group_dict
     group_id = request.path_params['group_id']
     if group_id not in settings.GROUP_IDS:
         return HTTPException(404, detail=f"{group_id} not found in groups.")
-    group = gl.groups.get(settings.GROUP_IDS[group_id])
-    group_projects = group.projects.list(order_by='name', sort='asc', simple=True, all=True)
-    # print(group_projects, dir(group_projects[0]))
-    # print(group_projects[0].attributes)
-    projects = {'data': [{'id': group_project.id,
-                 'name': group_project.name,
-                 'web_url': group_project.web_url,
-                 'last_activity_at': group_project.last_activity_at,
-                 'description': group_project.description}
-                for group_project in group_projects]}
-    return JSONResponse(projects)
+    if not group_id in group_dict:
+        print(f'Fetching projects for {group_id} manually.')
+        group_dict[group_id] = fetch_group(group_id)
+    return JSONResponse(group_dict[group_id])
 
 
-@app.route('/{group}/{project}')
+@app.route('/commits/{group}/{project}')
 async def get_project_and_commits(request):
     group = request.path_params['group']
     project = request.path_params['project'].upper()
@@ -157,6 +154,34 @@ async def get_job_status(request):
         'artifacts_expire_at': job.artifacts_expire_at
     }
     return JSONResponse({'job_status': job_status})
+
+
+async def fetch_group(group_id):
+    group = gl.groups.get(settings.GROUP_IDS[group_id])
+    group_projects = group.projects.list(order_by='name', sort='asc', simple=True, all=True)
+    projects = {'data': [{'id': group_project.id,
+                'name': group_project.name,
+                'web_url': group_project.web_url,
+                'last_activity_at': group_project.last_activity_at,
+                'description': group_project.description}
+                for group_project in group_projects]}
+    return projects
+
+
+def group_to_dict():
+    print('Fetching groups')
+    global group_dict
+    tmp_dict = {}
+    for group_id  in settings.GROUP_IDS:
+        tmp_dict[group_id] = fetch_group(group_id)
+    group_dict = tmp_dict
+
+
+if settings.PREFETCH_GROUPS:
+    print('Starting timer.')
+    t = Timer(600, group_to_dict)
+    t.start()
+
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=8000)
