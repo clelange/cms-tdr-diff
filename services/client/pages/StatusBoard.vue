@@ -192,16 +192,21 @@ export default {
   },
   methods: {
     async updatePipelines() {
-      console.log('updatePipelines')
       await this.$store.dispatch('jobs/update')
     },
     async injectPipeline() {
       console.log('injectPipeline')
-      const lines = [1031242, 1031241, 1031218, 1031195, 1031160, 672230]
+      const lines = [1043605]
       const pipelineId = lines[Math.floor(Math.random() * lines.length)]
       await this.$store.dispatch('jobs/load', pipelineId)
     }
-  }
+  },
+  mounted(){
+    window.setInterval(()=>{
+      this.updatePipelines();
+    }, 15000);
+
+  },
 }
 </script>
 
