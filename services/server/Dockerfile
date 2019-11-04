@@ -1,9 +1,8 @@
-FROM golang:1.12.9-buster AS builder
+FROM golang:1.13.4-buster AS builder
 ADD . /app
 WORKDIR /app
-RUN go get -d -v github.com/gin-gonic/gin \
-	github.com/spf13/viper \
-	github.com/xanzy/go-gitlab
+ENV GO111MODULE=on
+RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o /main .
 
 # final stage
