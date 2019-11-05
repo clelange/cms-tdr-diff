@@ -1,0 +1,5 @@
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates
+COPY cms-tdr-diff /main
+ENTRYPOINT ["/main"]
+EXPOSE 8000

@@ -1,2 +1,3 @@
+dist/
 .env.yaml
 tdr-diff-backend-go
