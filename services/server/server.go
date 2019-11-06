@@ -109,7 +109,7 @@ func readConfig() (*viper.Viper, error) {
 	v.SetDefault("groupIds", []string{
 		"papers", "notes", "reports",
 	})
-	v.SetConfigName(".env")
+	v.SetConfigName("config")
 	v.AddConfigPath("config")
 	v.AutomaticEnv()
 	err := v.ReadInConfig()
