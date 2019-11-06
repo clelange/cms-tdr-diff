@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -240,6 +241,10 @@ func ping(c *gin.Context) {
 }
 
 func main() {
+
+	for _, e := range os.Environ() {
+		fmt.Println(e)
+	}
 
 	v1, err := readConfig()
 	if err != nil {
