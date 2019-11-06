@@ -98,6 +98,10 @@ type gitlabCommitList struct {
 
 func readConfig() (*viper.Viper, error) {
 	v := viper.New()
+	// Use envrironment variables for hosted version with VIPER_ prefix
+	v.SetEnvPrefix("viper") // will be uppercased automatically
+	// v.BindEnv("gitlabToken")
+	// v.BindEnv("triggerToken")
 	v.SetDefault("port", 8000)
 	v.SetDefault("frontendOrigin", "http://localhost:3000")
 	v.SetDefault("gitlabURL", "https://gitlab.cern.ch/api/v4")
@@ -109,10 +113,17 @@ func readConfig() (*viper.Viper, error) {
 	v.SetDefault("groupIds", []string{
 		"papers", "notes", "reports",
 	})
-	v.SetConfigName("config")
+	v.SetConfigName("config2")
 	v.AddConfigPath("config")
 	v.AutomaticEnv()
 	err := v.ReadInConfig()
+	if err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			// Config file not found; ignore error if desired
+			fmt.Println("Config file not found. Trying to use environment variables.")
+			return v, nil
+		}
+	}
 	return v, err
 }
 
