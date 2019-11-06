@@ -113,7 +113,7 @@ func readConfig() (*viper.Viper, error) {
 	v.SetDefault("groupIds", []string{
 		"papers", "notes", "reports",
 	})
-	v.SetConfigName("config2")
+	v.SetConfigName("config")
 	v.AddConfigPath("config")
 	v.AutomaticEnv()
 	err := v.ReadInConfig()
@@ -258,7 +258,13 @@ func main() {
 	configuration.commitHistoryDays = v1.GetInt("commitHistoryDays")
 	configuration.updateIntervalSeconds = v1.GetInt("updateIntervalSeconds")
 	configuration.gitlabToken = v1.GetString("gitlabToken")
+	if configuration.gitlabToken == "" {
+		log.Panicln("gitlabToken cannot be empty.")
+	}
 	configuration.triggerToken = v1.GetString("triggerToken")
+	if configuration.triggerToken == "" {
+		log.Panicln("triggerToken cannot be empty.")
+	}
 
 	fmt.Printf("Reading config for port = %d\n", configuration.port)
 	fmt.Printf("Reading config for frontendOrigin = %s\n", configuration.frontendOrigin)
