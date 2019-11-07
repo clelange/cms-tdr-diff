@@ -39,7 +39,7 @@ export default {
   /*
   ** Nuxt.js dev-modules
   */
-  devModules: [
+  buildModules: [
   ],
   /*
   ** Nuxt.js modules
@@ -66,6 +66,9 @@ export default {
   },
   proxy: {
     '/api/': {target: process.env.BACKEND_URL || 'http://localhost:8000/', pathRewrite: {'^/api/': ''}}
+  },
+  env: {
+    requestToken: process.env.REQUEST_TOKEN || ''
   },
   // styleResources: {
   //   // your settings here

@@ -179,6 +179,7 @@ export default {
         group: this.categoryName,
         project: this.$store.state.commits.projectInfo.name
       }
+      this.$axios.setToken(process.env.requestToken)
       await this.$axios
         .$post('/trigger', postDict)
         .then(response => {

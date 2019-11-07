@@ -31,6 +31,7 @@ export const actions = {
       return
     }
     commit('setApiStatus', null, { root: true })
+    this.$axios.setToken(process.env.requestToken)
     await this.$axios.$get('/status/pipeline/' + pipelineId).then(
       jobStatus => {
         commit('setApiStatus', 'good', { root: true })
@@ -53,6 +54,7 @@ export const actions = {
         state.pipelineStatus[i].pipelineId
       )
       commit('setApiStatus', null, { root: true })
+      this.$axios.setToken(process.env.requestToken)
       await this.$axios.$get('/status/pipeline/' + currentPipelineId).then(
         jobStatus => {
           commit('setApiStatus', 'good', { root: true })

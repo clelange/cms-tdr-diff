@@ -1,13 +1,14 @@
 // export const state = () => ({})
 export const state = () => ({
   tdrTypes: [],
-  apiStatus: null
+  apiStatus: null,
 })
 
 export const actions = {
   async loadTdr({ state, commit }) {
     if (state.tdrTypes.length) return
     commit('setApiStatus', null)
+    this.$axios.setToken(process.env.requestToken)
     await this.$axios.$get('/types').then(
       tdrTypes => {
         commit('setApiStatus', 'good')

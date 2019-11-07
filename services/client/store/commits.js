@@ -30,6 +30,7 @@ export const actions = {
     }
     console.log('axios commits')
     commit('setApiStatus', null, { root: true })
+    this.$axios.setToken(process.env.requestToken)
     await this.$axios.$get('commits/'+categoryName+'/'+analysisId).then(
       commits => {
         commit('setApiStatus', 'good', { root: true })
