@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"github.com/xanzy/go-gitlab"
@@ -20,6 +21,7 @@ type Configuration struct {
 	frontendOrigin        string
 	gitlabToken           string
 	triggerToken          string
+	jwtSecret             []byte
 	gitlabURL             string
 	gitlabProject         int
 	debug                 bool
@@ -27,6 +29,11 @@ type Configuration struct {
 	groupIds              []string
 	commitHistoryDays     int
 	updateIntervalSeconds int
+}
+
+// User struct
+type User struct {
+	UserName string
 }
 
 type tdrTypes struct {
@@ -265,6 +272,11 @@ func main() {
 	if configuration.triggerToken == "" {
 		log.Panicln("triggerToken cannot be empty.")
 	}
+	var jwtSecretString = v1.GetString("jwtSecret")
+	if jwtSecretString == "" {
+		log.Panicln("jwtSecret cannot be empty.")
+	}
+	configuration.jwtSecret = []byte(jwtSecretString)
 
 	fmt.Printf("Reading config for port = %d\n", configuration.port)
 	fmt.Printf("Reading config for frontendOrigin = %s\n", configuration.frontendOrigin)
@@ -325,6 +337,60 @@ func main() {
 	}
 	r := gin.Default()
 
+	var identityKey = "id"
+	// the jwt middleware
+	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
+		// Realm:      "CMS TDR Diff Zone",
+		Key: configuration.jwtSecret,
+		// Timeout:    time.Hour,
+		// MaxRefresh: time.Hour,
+		// IdentityKey: identityKey,
+		PayloadFunc: func(data interface{}) jwt.MapClaims {
+			if v, ok := data.(*User); ok {
+				return jwt.MapClaims{
+					identityKey: v.UserName,
+				}
+			}
+			return jwt.MapClaims{}
+		},
+		IdentityHandler: func(c *gin.Context) interface{} {
+			claims := jwt.ExtractClaims(c)
+			return &User{
+				UserName: claims[identityKey].(string),
+			}
+		},
+		Authorizator: func(data interface{}, c *gin.Context) bool {
+			if v, ok := data.(*User); ok && v.UserName == "tdrdiff" {
+				return true
+			}
+
+			return false
+		},
+		Unauthorized: func(c *gin.Context, code int, message string) {
+			c.JSON(code, gin.H{
+				"code":    code,
+				"message": message,
+			})
+		},
+		// TokenLookup is a string in the form of "<source>:<name>" that is used
+		// to extract token from the request.
+		// Optional. Default value "header:Authorization".
+		// Possible values:
+		// - "header:<name>"
+		// - "query:<name>"
+		// - "cookie:<name>"
+		// - "param:<name>"
+		TokenLookup: "header: Authorization, query: token, cookie: jwt",
+		// TokenLookup: "query:token",
+		// TokenLookup: "cookie:token",
+
+		// TokenHeadName is a string in the header. Default value is "Bearer"
+		TokenHeadName: "Bearer",
+
+		// TimeFunc provides the current time. You can override it to use another time value. This is useful for testing or if your server uses a different time zone than your tokens.
+		TimeFunc: time.Now,
+	})
+
 	r.GET("/ping", ping)
 
 	r.GET("/lastUpdated", func(c *gin.Context) {
@@ -332,112 +398,117 @@ func main() {
 		c.JSON(200, gin.H{"lastUpdated": lastUpdated})
 	})
 
-	r.GET("/types", func(c *gin.Context) {
-		c.Header("Content-Type", "application/json")
-		c.JSON(200, gin.H{"names": types})
-	})
+	authorized := r.Group("/")
+	authorized.Use(authMiddleware.MiddlewareFunc())
+	{
 
-	r.GET("/projects/:id", func(c *gin.Context) {
-		var groupID group
-		if err := c.ShouldBindUri(&groupID); err != nil {
-			c.JSON(400, gin.H{"msg": err})
-			return
-		}
-		fmt.Println(groupID)
-		for key := range groupIDs {
-			fmt.Println(key)
-			if key == groupID.ID {
-				c.Header("Content-Type", "application/json")
-				c.JSON(200, gin.H{"data": allProjects[groupID.ID]})
+		authorized.GET("/types", func(c *gin.Context) {
+			c.Header("Content-Type", "application/json")
+			c.JSON(200, gin.H{"names": types})
+		})
+
+		authorized.GET("/projects/:id", func(c *gin.Context) {
+			var groupID group
+			if err := c.ShouldBindUri(&groupID); err != nil {
+				c.JSON(400, gin.H{"msg": err})
 				return
 			}
-		}
-		errorMessage := "Project not found: " + groupID.ID
-		err = errors.New(errorMessage)
-		c.JSON(404, gin.H{"msg": errorMessage})
-	})
+			fmt.Println(groupID)
+			for key := range groupIDs {
+				fmt.Println(key)
+				if key == groupID.ID {
+					c.Header("Content-Type", "application/json")
+					c.JSON(200, gin.H{"data": allProjects[groupID.ID]})
+					return
+				}
+			}
+			errorMessage := "Project not found: " + groupID.ID
+			err = errors.New(errorMessage)
+			c.JSON(404, gin.H{"msg": errorMessage})
+		})
 
-	r.GET("/commits/:group/:id", func(c *gin.Context) {
-		var projectID projectStruct
-		if err := c.ShouldBindUri(&projectID); err != nil {
-			c.JSON(400, gin.H{"msg": err})
-			return
-		}
-		fmt.Println(projectID)
-		// get the project ID, then its commits
-		projectPath := "tdr/" + projectID.Group + "/" + projectID.ID
-		project, response, err := gl.Projects.GetProject(projectPath, nil)
-		if err != nil {
-			c.JSON(404, gin.H{"msg": response})
-		}
-		projectInfo := gitlabProjectList{
-			ID:             project.ID,
-			Name:           project.Name,
-			Description:    project.Description,
-			WebURL:         project.WebURL,
-			LastActivityAt: project.LastActivityAt,
-		}
-		commitList, err := getCommits(project.ID, gl)
-		if err != nil {
-			c.JSON(400, gin.H{"msg": err})
-			return
-		}
-		c.Header("Content-Type", "application/json")
-		c.JSON(200, gin.H{"project_info": projectInfo, "commits": commitList})
-	})
+		authorized.GET("/commits/:group/:id", func(c *gin.Context) {
+			var projectID projectStruct
+			if err := c.ShouldBindUri(&projectID); err != nil {
+				c.JSON(400, gin.H{"msg": err})
+				return
+			}
+			fmt.Println(projectID)
+			// get the project ID, then its commits
+			projectPath := "tdr/" + projectID.Group + "/" + projectID.ID
+			project, response, err := gl.Projects.GetProject(projectPath, nil)
+			if err != nil {
+				c.JSON(404, gin.H{"msg": response})
+			}
+			projectInfo := gitlabProjectList{
+				ID:             project.ID,
+				Name:           project.Name,
+				Description:    project.Description,
+				WebURL:         project.WebURL,
+				LastActivityAt: project.LastActivityAt,
+			}
+			commitList, err := getCommits(project.ID, gl)
+			if err != nil {
+				c.JSON(400, gin.H{"msg": err})
+				return
+			}
+			c.Header("Content-Type", "application/json")
+			c.JSON(200, gin.H{"project_info": projectInfo, "commits": commitList})
+		})
 
-	r.POST("/trigger", func(c *gin.Context) {
-		var triggerObject triggerStruct
-		if err := c.BindJSON(&triggerObject); err != nil {
-			c.JSON(400, gin.H{"msg": err})
-			return
-		}
+		authorized.POST("/trigger", func(c *gin.Context) {
+			var triggerObject triggerStruct
+			if err := c.BindJSON(&triggerObject); err != nil {
+				c.JSON(400, gin.H{"msg": err})
+				return
+			}
 
-		var variables = make(map[string]string)
-		variables["REPO_PROJECT"] = triggerObject.Project
-		variables["REPO_GROUP"] = triggerObject.Group
-		variables["GIT_SHA1"] = triggerObject.SHA1
-		variables["GIT_SHA2"] = triggerObject.SHA2
+			var variables = make(map[string]string)
+			variables["REPO_PROJECT"] = triggerObject.Project
+			variables["REPO_GROUP"] = triggerObject.Group
+			variables["GIT_SHA1"] = triggerObject.SHA1
+			variables["GIT_SHA2"] = triggerObject.SHA2
 
-		referenceBranch := "master"
-		pipelineOptions := &gitlab.RunPipelineTriggerOptions{
-			Ref:       &referenceBranch,
-			Token:     &configuration.triggerToken,
-			Variables: variables,
-		}
+			referenceBranch := "master"
+			pipelineOptions := &gitlab.RunPipelineTriggerOptions{
+				Ref:       &referenceBranch,
+				Token:     &configuration.triggerToken,
+				Variables: variables,
+			}
 
-		pipeline, _, err := gl.PipelineTriggers.RunPipelineTrigger(pipelineProjectID, pipelineOptions)
-		if err != nil {
-			c.JSON(400, gin.H{"msg": err})
-			return
-		}
-		c.Header("Content-Type", "application/json")
-		c.JSON(200, gin.H{"status": "Pipeline triggered successfully!",
-			"pipeline_id": pipeline.ID})
-	})
+			pipeline, _, err := gl.PipelineTriggers.RunPipelineTrigger(pipelineProjectID, pipelineOptions)
+			if err != nil {
+				c.JSON(400, gin.H{"msg": err})
+				return
+			}
+			c.Header("Content-Type", "application/json")
+			c.JSON(200, gin.H{"status": "Pipeline triggered successfully!",
+				"pipeline_id": pipeline.ID})
+		})
 
-	r.GET("/status/pipeline/:id", func(c *gin.Context) {
-		var queryPipeline pipelineStruct
-		if err := c.ShouldBindUri(&queryPipeline); err != nil {
-			fmt.Println()
-			c.JSON(400, gin.H{"msg": err})
-			return
-		}
-		pipelineJobs, _, err := gl.Jobs.ListPipelineJobs(pipelineProjectID, queryPipeline.ID, nil)
-		if err != nil {
-			c.JSON(400, gin.H{"msg": err})
-			return
-		}
-		jobID := pipelineJobs[0].ID
-		job, _, err := gl.Jobs.GetJob(pipelineProjectID, jobID, nil)
-		if err != nil {
-			c.JSON(400, gin.H{"msg": err})
-			return
-		}
+		authorized.GET("/status/pipeline/:id", func(c *gin.Context) {
+			var queryPipeline pipelineStruct
+			if err := c.ShouldBindUri(&queryPipeline); err != nil {
+				fmt.Println()
+				c.JSON(400, gin.H{"msg": err})
+				return
+			}
+			pipelineJobs, _, err := gl.Jobs.ListPipelineJobs(pipelineProjectID, queryPipeline.ID, nil)
+			if err != nil {
+				c.JSON(400, gin.H{"msg": err})
+				return
+			}
+			jobID := pipelineJobs[0].ID
+			job, _, err := gl.Jobs.GetJob(pipelineProjectID, jobID, nil)
+			if err != nil {
+				c.JSON(400, gin.H{"msg": err})
+				return
+			}
 
-		c.Header("Content-Type", "application/json")
-		c.JSON(200, gin.H{"job_status": job})
-	})
+			c.Header("Content-Type", "application/json")
+			c.JSON(200, gin.H{"job_status": job})
+		})
+	}
 
 	// TODO: implement callback from GitLab for status update
 	// TODO: Get only commits of last N days
