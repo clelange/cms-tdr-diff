@@ -9,6 +9,7 @@ export const actions = {
     if (state.tdrTypes.length) return
     commit('setApiStatus', null)
     this.$axios.setToken(process.env.requestToken)
+    console.log("Token:", process.env.requestToken)
     await this.$axios.$get('/types').then(
       tdrTypes => {
         commit('setApiStatus', 'good')
