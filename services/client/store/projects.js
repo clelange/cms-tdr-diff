@@ -31,7 +31,7 @@ export const actions = {
     }
     console.log('axios projects')
     commit('setApiStatus', null, { root: true })
-    this.$axios.setToken(process.env.requestToken)
+    this.$axios.setToken(this.$env.REQUEST_TOKEN)
     await this.$axios.$get('/projects/'+categoryName).then(
       projects => {
         commit('setApiStatus', 'good', { root: true })

@@ -18,6 +18,7 @@
     "eslint": "^6.1.0",
     "nuxt": "^2.10.0",
     "nuxt-buefy": "^0.3.13",
+    "nuxt-env": "^0.1.0",
     "nuxt-vuex-localstorage": "^1.2.6"
   },
   "devDependencies": {

@@ -53,6 +53,12 @@ export default {
     ['nuxt-vuex-localstorage', {
       localStorage: ['jobs'],
       sessionStorage: ['jobs']
+    }],
+    ['nuxt-env', {
+      keys: [
+        'REQUEST_TOKEN'
+        // { key: 'REQUEST_TOKEN', secret: true } // Only inject the var server side
+      ]
     }]
     // '@nuxtjs/style-resources'
   ],
@@ -66,9 +72,6 @@ export default {
   },
   proxy: {
     '/api/': {target: process.env.BACKEND_URL || 'http://localhost:8000/', pathRewrite: {'^/api/': ''}}
-  },
-  env: {
-    requestToken: process.env.REQUEST_TOKEN || ''
   },
   // styleResources: {
   //   // your settings here
