@@ -165,7 +165,7 @@ export default {
       const timeA = new Date(a.created_at)
       const timeB = new Date(b.created_at)
       let comparison = 0
-      if (timeA > timeB) {
+      if (timeA < timeB) {
         return 1
       } else return -1
     },
