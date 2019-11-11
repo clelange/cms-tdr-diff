@@ -58,7 +58,7 @@ export default {
       keys: [
         'REQUEST_TOKEN',
         // { key: 'REQUEST_TOKEN', secret: true } // Only inject the var server side
-        'SNAPSHOT_TAG'
+        'BUILD_HASH'
       ]
     }]
     // '@nuxtjs/style-resources'
