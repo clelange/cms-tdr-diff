@@ -178,7 +178,7 @@ export default {
         jobDict['created_at'] =
           this.$dateFns.distanceInWordsToNow(
             new Date(currentPipeline.jobStatus.created_at)
-          ) + ' ago'
+          )
         jobDict['web_url'] = currentPipeline.jobStatus.web_url
         massagedPipelines.push(jobDict)
       }
