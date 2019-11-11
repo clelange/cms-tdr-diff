@@ -56,8 +56,9 @@ export default {
     }],
     ['nuxt-env', {
       keys: [
-        'REQUEST_TOKEN'
+        'REQUEST_TOKEN',
         // { key: 'REQUEST_TOKEN', secret: true } // Only inject the var server side
+        'GITHUB_SHA'
       ]
     }]
     // '@nuxtjs/style-resources'
