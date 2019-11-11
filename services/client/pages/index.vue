@@ -15,6 +15,9 @@
         </div>
       </div>
     </div>
+    <div>
+      <page-footer />
+    </div>
   </div>
 </template>
 
@@ -22,11 +25,13 @@
 import { mapState } from 'vuex'
 import CmsLogo from '~/components/CmsLogo.vue'
 import PageHeader from '~/components/Header.vue'
+import PageFooter from '~/components/Footer.vue'
 
 export default {
   components: {
     CmsLogo,
-    PageHeader
+    PageHeader,
+    PageFooter,
   },
   computed: {
     ...mapState(['tdrTypes', 'apiStatus'])
