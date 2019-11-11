@@ -1,5 +1,6 @@
-FROM node:12.7.0-alpine
+FROM node:12.12.0-alpine
 
+ARG GITHUB_SHA="local"
 ENV BACKEND_URL "http://localhost:8000/"
 # RUN npm install -g http-server
 WORKDIR /app
