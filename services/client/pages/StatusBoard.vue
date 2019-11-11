@@ -5,11 +5,6 @@
     </div>
     <section class="section">
       <h1 class="title is-3">Job status board</h1>
-      <h2 class="subtitle is-4">Actions:</h2>
-      <div class="button">
-        <b-button @click="updatePipelines()" rounded>Update Pipeline Status</b-button>
-        <b-button @click="injectPipeline()" rounded>Inject Pipeline</b-button>
-      </div>
     </section>
     <section class="section">
       <b-tabs>
@@ -66,7 +61,7 @@
             <b-table-column field="web_url" label="Job URL">
               <a :href="props.row.web_url">Link</a>
             </b-table-column>
-            <b-table-column field="artifact" label="Artifacts">
+            <b-table-column field="artifact" label="Diff output">
               <a :href="props.row.artifacts_link">{{ props.row.artifacts }}</a>
             </b-table-column>
           </template>
@@ -193,12 +188,6 @@ export default {
   methods: {
     async updatePipelines() {
       await this.$store.dispatch('jobs/update')
-    },
-    async injectPipeline() {
-      console.log('injectPipeline')
-      const lines = [1043605]
-      const pipelineId = lines[Math.floor(Math.random() * lines.length)]
-      await this.$store.dispatch('jobs/load', pipelineId)
     }
   },
   mounted(){
