@@ -51,8 +51,8 @@ export default {
     '@nuxtjs/date-fns',
     'nuxt-buefy',
     ['nuxt-vuex-localstorage', {
-      localStorage: ['jobs'],
-      sessionStorage: ['jobs']
+      localStorage: ['jobs', 'preferences'],
+      sessionStorage: ['jobs', 'preferences']
     }],
     ['nuxt-env', {
       keys: [

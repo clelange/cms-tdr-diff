@@ -5,23 +5,26 @@
     <section class="section">
       <h1 class="title is-3">{{ categoryName }}</h1>
       <!-- <h2 class="subtitle is-4">Actions:</h2> -->
-      <p>You can filter by ID/name using the search box below. This will also show matches from other pages (but you can also disable pagination). It might also be useful to sort by date of last activity.</p>
+      <p>You can filter by ID/name using the search box below. This will show matches for the full category, i.e. not only the ones shown on the respective page. If you would like to see all analyses/matches, you can also disable pagination. It might also be useful to sort by name instead of date of last activity.</p>
       <p>Once you have found the desired analysis, click on its name.</p>
     </section>
-    <div>
-      <nav class="panel">
-        <div class="panel-block">
-          <b-field label="Filter by name">
-            <p class="control has-icons-left">
-              <b-input v-model="search_query" type="text" icon="magnify" placeholder="search"></b-input>
-              <span class="icon is-small is-left">
-                <i class="fas fa-search" aria-hidden="true"></i>
-              </span>
-            </p>
-          </b-field>
-        </div>
-      </nav>
 
+    <nav class="panel">
+      <div class="panel-block">
+        <b-field label="Filter by name" label-position="on-border" grouped>
+          <b-input v-model="search_query" type="text" icon="magnify" placeholder="search"></b-input>
+          <p class="control">
+            <button
+              class="button is-primary"
+              size="is-medium"
+              v-bind:disabled="search_query == ''"
+              @click="clearSearchQuery()"
+            >Clear filter</button>
+          </p>
+        </b-field>
+      </div>
+    </nav>
+    <div>
       <section>
         <b-tabs>
           <b-field grouped group-multiline>
@@ -41,8 +44,8 @@
             pagination-position="top"
             :hoverable="true"
             :striped="true"
-            default-sort-direction="desc"
-            :default-sort="['name', 'asc']"
+            default-sort-direction="asc"
+            :default-sort="['last_activity_at', 'desc']"
             sort-icon="chevron-up"
           >
             <template slot-scope="props">
@@ -77,16 +80,24 @@ export default {
   data() {
     console.log('called data() in listNotes.vue')
     return {
-      isLoading: !(this.$store.state.apiStatus),
+      isLoading: !this.$store.state.apiStatus,
       categoryName: this.$route.params.pathMatch.split('/')[0],
-      search_query: '',
+      // search_query: this.$store.state.preferences.search_query,
       perPage: 10,
       isPaginated: true
     }
   },
   computed: {
+    search_query: {
+      get() {
+        return this.$store.state.preferences.search_query
+      },
+      set(value) {
+        this.$store.commit('preferences/updateSearchQuery', value)
+      }
+    },
     filtered() {
-      var query = this.search_query
+      var query = this.$store.state.preferences.search_query
       while (query.endsWith('\\')) {
         query = query.slice(0, query.lastIndexOf('\\') - 1)
       }
@@ -95,9 +106,7 @@ export default {
       const myProject = this.$store.state.projects.myProjects
       var tableData = []
       for (var i in myProject) {
-        if (
-          myProject[i].name.match(name_re)
-        ) {
+        if (myProject[i].name.match(name_re)) {
           tableData.push(myProject[i])
         }
       }
@@ -105,6 +114,11 @@ export default {
     },
     loaded() {
       return this.$store.state.jobs.status
+    }
+  },
+  methods: {
+    clearSearchQuery() {
+      this.search_query = ''
     }
   }
 }
