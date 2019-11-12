@@ -3,10 +3,18 @@
     <b-loading :active.sync="isLoading" :can-cancel="false"></b-loading>
     <section class="section">
       <h1 class="title is-3">{{ categoryName }} / {{ $store.state.commits.projectInfo.name }}</h1>
-      <h2 class="subtitle is-6">description: {{ $store.state.commits.projectInfo.description }}<br/>
-      repository: <a :href=$store.state.commits.projectInfo.web_url>{{ $store.state.commits.projectInfo.web_url }}</a></h2>
+      <h2 class="subtitle is-6">
+        description: {{ $store.state.commits.projectInfo.description }}
+        <br />repository:
+        <a
+          :href="$store.state.commits.projectInfo.web_url"
+        >{{ $store.state.commits.projectInfo.web_url }}</a>
+      </h2>
       <p>You can filter by commit title and author name using the search box below. This will also show matches from other pages. It might also be useful to sort by date of last activity. Only commits of the last 90 days are shown.</p>
-      <p>Select two commits, then hit the submit button to trigger the PDF diff pipeline. You can find the status of your jobs on the  <nuxt-link to="/statusboard">Status Board</nuxt-link> page.</p>
+      <p>
+        Select two commits, then hit the submit button to trigger the PDF diff pipeline. You can find the status of your jobs on the
+        <nuxt-link to="/statusboard">Status Board</nuxt-link>page.
+      </p>
     </section>
     <div>
       <nav class="panel">
@@ -107,7 +115,7 @@
 export default {
   data() {
     return {
-      isLoading: !(this.$store.state.apiStatus),
+      isLoading: !this.$store.state.apiStatus,
       categoryName: this.$route.params.pathMatch.split('/')[0],
       search_query: '',
       checkedRows: [],
