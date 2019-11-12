@@ -264,7 +264,7 @@
 </template>
 
 <script>
-export default {};
+export default {}
 </script>
 
 <style lang="scss" scoped>
@@ -406,7 +406,6 @@ export default {};
   stroke-opacity: 1;
 }
 
-
 @keyframes dash {
   to {
     stroke-dashoffset: 0;
@@ -418,5 +417,4 @@ export default {};
     stroke-dashoffset: 0;
   }
 }
-
 </style>
