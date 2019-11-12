@@ -175,10 +175,9 @@ export default {
             jobDict['artifacts_link'] = ''
             jobDict['artifacts'] = ''
         }
-        jobDict['created_at'] =
-          this.$dateFns.distanceInWordsToNow(
-            new Date(currentPipeline.jobStatus.created_at)
-          )
+        jobDict['created_at'] = this.$dateFns.distanceInWordsToNow(
+          new Date(currentPipeline.jobStatus.created_at)
+        )
         jobDict['web_url'] = currentPipeline.jobStatus.web_url
         massagedPipelines.push(jobDict)
       }
@@ -190,12 +189,11 @@ export default {
       await this.$store.dispatch('jobs/update')
     }
   },
-  mounted(){
-    window.setInterval(()=>{
-      this.updatePipelines();
-    }, 15000);
-
-  },
+  mounted() {
+    window.setInterval(() => {
+      this.updatePipelines()
+    }, 15000)
+  }
 }
 </script>
 
