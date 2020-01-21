@@ -1,3 +1,6 @@
 [submodule "services/server"]
 	path = services/server
 	url = git@github.com:clelange/cms-tdr-diff-backend.git
+[submodule "services/client"]
+	path = services/client
+	url = git@github.com:clelange/cms-tdr-diff-frontend.git
