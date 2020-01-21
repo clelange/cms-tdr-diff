@@ -9,32 +9,9 @@ import (
 	"strconv"
 	"time"
 
-	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 	"github.com/xanzy/go-gitlab"
 )
-
-// Configuration structure
-type Configuration struct {
-	port                  int
-	frontendOrigin        string
-	gitlabToken           string
-	triggerToken          string
-	jwtSecret             []byte
-	gitlabURL             string
-	gitlabProject         int
-	debug                 bool
-	prefetchGroups        bool
-	groupIds              []string
-	commitHistoryDays     int
-	updateIntervalSeconds int
-}
-
-// User struct
-type User struct {
-	UserName string
-}
 
 type tdrTypes struct {
 	Names []string `json:"names"`
@@ -75,7 +52,15 @@ type gitlabCommitList struct {
 	Title       string     `json:"title"`
 	AuthorName  string     `json:"author_name"`
 	AuthorEmail string     `json:"author_email"`
+	Tag         string     `json:"tag"`
 }
+
+// type gitlabTagList struct {
+// 	Commit  *gitlab.Commit      `json:"commit"`
+// 	Release *gitlab.ReleaseNote `json:"release"`
+// 	Name    string              `json:"name"`
+// 	Message string              `json:"message"`
+// }
 
 // type gitlabPipelineStatus struct {
 // 	ID         int    `json:"id"`
@@ -102,37 +87,6 @@ type gitlabCommitList struct {
 // 	Coverage    string     `json:"coverage"`
 // 	WebURL      string     `json:"web_url"`
 // }
-
-func readConfig() (*viper.Viper, error) {
-	v := viper.New()
-	// Use envrironment variables for hosted version with VIPER_ prefix
-	v.SetEnvPrefix("viper") // will be uppercased automatically
-	// v.BindEnv("gitlabToken")
-	// v.BindEnv("triggerToken")
-	v.SetDefault("port", 8000)
-	v.SetDefault("frontendOrigin", "http://localhost:3000")
-	v.SetDefault("gitlabURL", "https://gitlab.cern.ch/api/v4")
-	v.SetDefault("gitlabProject", 56283)
-	v.SetDefault("debug", true)
-	v.SetDefault("prefetchGroups", true)
-	v.SetDefault("commitHistoryDays", 90)
-	v.SetDefault("updateIntervalSeconds", 300)
-	v.SetDefault("groupIds", []string{
-		"papers", "notes", "reports",
-	})
-	v.SetConfigName("config")
-	v.AddConfigPath("config")
-	v.AutomaticEnv()
-	err := v.ReadInConfig()
-	if err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			// Config file not found; ignore error if desired
-			fmt.Println("Config file not found. Trying to use environment variables.")
-			return v, nil
-		}
-	}
-	return v, err
-}
 
 // check that provided subgroups exist in project
 func validateSubgroups(groupID int, gl *gitlab.Client, configuration Configuration) (map[string]int, error) {
@@ -205,6 +159,30 @@ func updateProjects(groupIDs map[string]int, gl *gitlab.Client) (map[string][]gi
 	return allProjects, err
 }
 
+func getTags(projectID int, gl *gitlab.Client) ([]*gitlab.Tag, error) {
+
+	// var tagList []gitlabTagList
+	var listQueryOptions = &gitlab.ListTagsOptions{
+		ListOptions: gitlab.ListOptions{}}
+	tags, _, err := gl.Tags.ListTags(projectID, listQueryOptions)
+	if err != nil {
+		fmt.Print(err)
+		return nil, err
+	}
+	// currentTagList := make([]gitlabTagList, len(tags))
+	// for i := 0; i < len(tags); i++ {
+	// 	currentTagList[i] = gitlabTagList{
+	// 		Commit:  tags[i].Commit,
+	// 		Release: tags[i].Release,
+	// 		Name:    tags[i].Name,
+	// 		Message: tags[i].Message,
+	// 	}
+	// 	tagList = append(tagList, currentTagList[i])
+	// }
+	return tags, err
+
+}
+
 func getCommits(projectID int, gl *gitlab.Client) ([]gitlabCommitList, error) {
 	maxPages := 100
 	currentPage := 1
@@ -229,6 +207,7 @@ func getCommits(projectID int, gl *gitlab.Client) ([]gitlabCommitList, error) {
 				Title:       commits[i].Title,
 				AuthorName:  commits[i].AuthorName,
 				AuthorEmail: commits[i].AuthorEmail,
+				Tag:         string(""),
 			}
 			commitList = append(commitList, currentCommitList[i])
 		}
@@ -237,6 +216,22 @@ func getCommits(projectID int, gl *gitlab.Client) ([]gitlabCommitList, error) {
 	}
 	fmt.Println("Number of commits:", len(commitList))
 	return commitList, nil
+}
+
+func getProjectInfo(projectID projectStruct, gl *gitlab.Client) (gitlabProjectList, *gitlab.Response, error) {
+	projectPath := "tdr/" + projectID.Group + "/" + projectID.ID
+	project, response, err := gl.Projects.GetProject(projectPath, nil)
+	if err != nil {
+		return gitlabProjectList{}, response, err
+	}
+	projectInfo := gitlabProjectList{
+		ID:             project.ID,
+		Name:           project.Name,
+		Description:    project.Description,
+		WebURL:         project.WebURL,
+		LastActivityAt: project.LastActivityAt,
+	}
+	return projectInfo, response, err
 }
 
 func ping(c *gin.Context) {
@@ -254,41 +249,10 @@ func main() {
 	}
 	// fmt.Println(v1)
 
-	var configuration Configuration
-	configuration.port = v1.GetInt("port")
-	configuration.frontendOrigin = v1.GetString("frontendOrigin")
-	configuration.gitlabURL = v1.GetString("gitlabURL")
-	configuration.gitlabProject = v1.GetInt("gitlabProject")
-	configuration.debug = v1.GetBool("debug")
-	configuration.prefetchGroups = v1.GetBool("prefetchGroups")
-	configuration.groupIds = v1.GetStringSlice("groupIds")
-	configuration.commitHistoryDays = v1.GetInt("commitHistoryDays")
-	configuration.updateIntervalSeconds = v1.GetInt("updateIntervalSeconds")
-	configuration.gitlabToken = v1.GetString("gitlabToken")
-	if configuration.gitlabToken == "" {
-		log.Panicln("gitlabToken cannot be empty.")
+	configuration, err := validateAndSetConfig(v1)
+	if err != nil {
+		log.Panicln(err)
 	}
-	configuration.triggerToken = v1.GetString("triggerToken")
-	if configuration.triggerToken == "" {
-		log.Panicln("triggerToken cannot be empty.")
-	}
-	var jwtSecretString = v1.GetString("jwtSecret")
-	if jwtSecretString == "" {
-		log.Panicln("jwtSecret cannot be empty.")
-	}
-	configuration.jwtSecret = []byte(jwtSecretString)
-
-	fmt.Printf("Reading config for port = %d\n", configuration.port)
-	fmt.Printf("Reading config for frontendOrigin = %s\n", configuration.frontendOrigin)
-	fmt.Printf("Reading config for gitlabURL = %s\n", configuration.gitlabURL)
-	fmt.Printf("Reading config for gitlabProject = %d\n", configuration.gitlabProject)
-	fmt.Printf("Reading config for debug = %t\n", configuration.debug)
-	fmt.Printf("Reading config for prefetchGroups = %t\n", configuration.prefetchGroups)
-	fmt.Printf("Reading config for groupIds = %#v\n", configuration.groupIds)
-	fmt.Printf("Reading config for commitHistoryDays = %d\n", configuration.commitHistoryDays)
-	fmt.Printf("Reading config for updateIntervalSeconds = %d\n", configuration.updateIntervalSeconds)
-	// fmt.Printf("Reading config for gitlabToken = %s\n", configuration.gitlabToken)
-	// fmt.Printf("Reading config for triggerToken = %s\n", configuration.triggerToken)
 
 	gl := gitlab.NewClient(nil, configuration.gitlabToken)
 	gl.SetBaseURL(configuration.gitlabURL)
@@ -337,66 +301,14 @@ func main() {
 	}
 	r := gin.Default()
 
-	var identityKey = "id"
-	// the jwt middleware
-	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
-		// Realm:      "CMS TDR Diff Zone",
-		Key: configuration.jwtSecret,
-		// Timeout:    time.Hour,
-		// MaxRefresh: time.Hour,
-		// IdentityKey: identityKey,
-		PayloadFunc: func(data interface{}) jwt.MapClaims {
-			if v, ok := data.(*User); ok {
-				return jwt.MapClaims{
-					identityKey: v.UserName,
-				}
-			}
-			return jwt.MapClaims{}
-		},
-		IdentityHandler: func(c *gin.Context) interface{} {
-			claims := jwt.ExtractClaims(c)
-			return &User{
-				UserName: claims[identityKey].(string),
-			}
-		},
-		Authorizator: func(data interface{}, c *gin.Context) bool {
-			if v, ok := data.(*User); ok && v.UserName == "tdrdiff" {
-				return true
-			}
-
-			return false
-		},
-		Unauthorized: func(c *gin.Context, code int, message string) {
-			c.JSON(code, gin.H{
-				"code":    code,
-				"message": message,
-			})
-		},
-		// TokenLookup is a string in the form of "<source>:<name>" that is used
-		// to extract token from the request.
-		// Optional. Default value "header:Authorization".
-		// Possible values:
-		// - "header:<name>"
-		// - "query:<name>"
-		// - "cookie:<name>"
-		// - "param:<name>"
-		TokenLookup: "header: Authorization, query: token, cookie: jwt",
-		// TokenLookup: "query:token",
-		// TokenLookup: "cookie:token",
-
-		// TokenHeadName is a string in the header. Default value is "Bearer"
-		TokenHeadName: "Bearer",
-
-		// TimeFunc provides the current time. You can override it to use another time value. This is useful for testing or if your server uses a different time zone than your tokens.
-		TimeFunc: time.Now,
-	})
-
 	r.GET("/ping", ping)
 
 	r.GET("/lastUpdated", func(c *gin.Context) {
 		c.Header("Content-Type", "application/json")
 		c.JSON(200, gin.H{"lastUpdated": lastUpdated})
 	})
+
+	authMiddleware, err := getAuthMiddleware(configuration.jwtSecret)
 
 	authorized := r.Group("/")
 	authorized.Use(authMiddleware.MiddlewareFunc())
@@ -433,25 +345,33 @@ func main() {
 				c.JSON(400, gin.H{"msg": err})
 				return
 			}
-			fmt.Println(projectID)
 			// get the project ID, then its commits
-			projectPath := "tdr/" + projectID.Group + "/" + projectID.ID
-			project, response, err := gl.Projects.GetProject(projectPath, nil)
+			projectInfo, response, err := getProjectInfo(projectID, gl)
 			if err != nil {
 				c.JSON(404, gin.H{"msg": response})
 			}
-			projectInfo := gitlabProjectList{
-				ID:             project.ID,
-				Name:           project.Name,
-				Description:    project.Description,
-				WebURL:         project.WebURL,
-				LastActivityAt: project.LastActivityAt,
-			}
-			commitList, err := getCommits(project.ID, gl)
+
+			commitList, err := getCommits(projectInfo.ID, gl)
 			if err != nil {
 				c.JSON(400, gin.H{"msg": err})
 				return
 			}
+
+			tagList, err := getTags(projectInfo.ID, gl)
+			if err != nil {
+				c.JSON(400, gin.H{"msg": err})
+				return
+			}
+
+			// match tags to commits
+			for n, commit := range commitList {
+				for _, tag := range tagList {
+					if commit.ShortID == tag.Commit.ShortID {
+						commitList[n].Tag = tag.Name
+					}
+				}
+			}
+
 			c.Header("Content-Type", "application/json")
 			c.JSON(200, gin.H{"project_info": projectInfo, "commits": commitList})
 		})
