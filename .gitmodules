@@ -1,0 +1,3 @@
+[submodule "services/server"]
+	path = services/server
+	url = git@github.com:clelange/cms-tdr-diff-backend.git
